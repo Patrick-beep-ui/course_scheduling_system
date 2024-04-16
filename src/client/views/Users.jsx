@@ -8,7 +8,7 @@ function User() {
 
     useEffect(() => {
         const getUsers = async () => {
-            const request = await axios("/api/uasers")
+            const request = await axios("/api/users")
             const {data} = request;
             console.log(data);
         }

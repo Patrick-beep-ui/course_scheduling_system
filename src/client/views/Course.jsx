@@ -23,17 +23,38 @@ function Course() {
     getCourses();
    }, [])
 
+   const deleteCourse = async (event) => {
+    try {
+        const student = event.currentTarget 
+        const student_id = student.getAttribute('value')
+        console.log(student_id);
+
+        const url = `/api/courses/${major_id}/${student_id}`
+        axios.delete(url)
+
+        const request = await axios(`/api/courses/${major_id}`)
+        setCourses(request.data.courses);
+    }
+    catch (e) {
+        console.error(e);
+    }
+   }
+
    return(
     <>
     <h1>Courses</h1>
-     <table>
-      <thead>
+    <Link to={`/`}>Go Back</Link>
+    <section className="mt-4">
+     <table className="table table-stripped">
+      <thead className="table-dark">
         <tr>
-        <th>ID</th>
-        <th>Code</th>
-        <th>Name</th>
-        <th>Credits</th>
-        <th>Prerequisite</th>
+        <th scope="col">ID</th>
+        <th scope="col">Code</th>
+        <th scope="col">Name</th>
+        <th scope="col">Credits</th>
+        <th scope="col">Prerequisite</th>
+        <th></th>
+        <th></th>
         </tr>
       </thead>
       <tbody>
@@ -44,13 +65,15 @@ function Course() {
           <td>{course.course_name}</td>
           <td>{course.credits}</td>
           <td>{course.prerequisite}</td>
+          <td><i className='bx bx-pencil edit'></i></td>
+          <td name='course_id' value={course.id} onClick={(event) => deleteCourse(event)}><i className='bx bx-trash delete'></i></td>
          </tr>
           )}
         </tbody>
     </table>
 
-    <Link to={`/courses/add/${major_id}`}>Add Course</Link>
-
+    <Link to={`/courses/add/${major_id}`} className="btn btn-primary">Add Course</Link>
+    </section>
     </>
    )
 }

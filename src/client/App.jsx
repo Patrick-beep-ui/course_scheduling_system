@@ -3,6 +3,7 @@ import axios from "axios";
 import {v4 as uuid} from "uuid";
 import "./App.css";
 import { Link } from "react-router-dom";
+import { Toaster, toast } from 'sonner'
 
 function App() {
   const [majors, setMajors] = useState([]);
@@ -18,17 +19,33 @@ function App() {
     getMajors();
   }, [])
 
+  const deleteMajor = async (event, id) => {
+    const clickedElement = event.currentTarget;
+    const major_id = clickedElement.getAttribute('value');
+    console.log(major_id);
+
+    const url =  `/api/majors/${major_id}`
+    axios.delete(url)
+
+    const request = await axios("/api/majors");
+    setMajors(request.majors);
+    toast('Major deleted successfully');
+  }
+
   return (
     <>
-    <h1>This is the homePage</h1>
+      <Toaster />
+    <h1>Majors</h1>
+    <section className="mt-4">    
 
-    <table>
-      <thead>
+    <table className="table table-striped">
+      <thead className="table-dark">
         <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Degree</th>
-        <th>Credits</th>
+        <th scope="col">ID</th>
+        <th scope="col">Name</th>
+        <th scope="col">Degree</th>
+        <th scope="col">Credits</th>
+        <th colSpan={4}></th>
         </tr>
       </thead>
       <tbody>
@@ -38,15 +55,24 @@ function App() {
           <td>{major.major_name}</td>
           <td>{major.degree}</td>
           <td>{major.credits}</td>
-          <td><Link to={`/courses/${major.id}`}>Courses</Link></td>
-          <td><Link to={`/students/${major.id}`}>Students</Link></td>
+          <td><Link to={`/courses/${major.id}`} className="btn btn-primary">Courses</Link></td>
+          <td><Link to={`/students/${major.id}`} className="btn btn-secondary">Students</Link></td>
+          <td><i className='bx bx-pencil edit'></i></td>
+          <td name='major_id' value={major.id} onClick={(event) => deleteMajor(event, major.id)}><i className='bx bx-trash delete'></i></td>
          </tr>
           )}
         </tbody>
     </table>
+    {/*
+    <button onClick={() => toast('My first toast')}>
+        Give me a toast
+      </button>
+    */ }
 
-    <Link to={'/major/add'}>Add Major</Link>
+    <Link to={'/major/add'} className="btn btn-primary">Add Major</Link>
+    </section>
     </>
+
   )
 }
 

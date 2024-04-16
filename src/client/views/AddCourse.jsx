@@ -1,12 +1,14 @@
 import { useForm } from "react-hook-form";
 //import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 
 function AddCourse() {
     const { register, handleSubmit, formState: { errors } } = useForm({ mode: "onChange" });
     //const [courses, setCourses] = useState([]);
    const { major_id } = useParams();
+   const navigate = useNavigate();
 
    console.log(major_id);
 
@@ -20,6 +22,7 @@ function AddCourse() {
                 body: JSON.stringify(formData)
             });
             const { courses } = await request.json();
+            navigate(`/courses/${major_id}`);
             console.log(courses);
         } catch (error) {
             console.error(error);
@@ -29,7 +32,6 @@ function AddCourse() {
     return (
         <>
             <h1>Add Course</h1>
-
             <form onSubmit={handleSubmit(processData)}>
                 <section>
                     <label>Course Code:</label>

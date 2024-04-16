@@ -1,6 +1,7 @@
 import express from 'express';
 import {QueryTypes} from "sequelize";
 import connection from "./connection.js";
+
 import Major from "./models/Major.js";
 import Course from "./models/Course.js";
 import User from "./models/User.js";
@@ -14,7 +15,7 @@ const api = express.Router({mergeParams: true});
 //Create the API
 
 //majors
-api.route("/majors")
+api.route("/majors/:id?")
 .get(async (req, res, next) => {
     const majors = await Major.findAll();
     res.status(201);
@@ -42,9 +43,24 @@ api.route("/majors")
         console.error(err);
     }
 })
+.delete(async (req, res) => {
+    try {
+        const {id} = req.params
+        await Major.destroy({where: {id}});
+
+        const majors = await Major.findAll();
+        res.status(200).json({
+            msg: 'Major deleted successfully',
+            majors
+             });
+    }
+    catch(err) {
+        console.error(err);
+    }
+})
 
 //courses
-api.route("/courses/:major_id")
+api.route("/courses/:major_id/:course_id?")
 .get(async (req, res) => {
     const id = req.params.major_id;
     const courses = await Course.findAll({
@@ -80,6 +96,30 @@ api.route("/courses/:major_id")
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+.delete(async (req, res) => {
+    try {
+        const course_id = req.params.course_id
+        const id = req.params.major_id;
+        await Course.destroy({
+            where: {
+                id: course_id
+            }
+        }) 
+        const courses = await Course.findAll({
+            where: {
+                major: id
+              }
+        });
+        res.status(201);
+        res.json({
+            msg: 'Major deleted successfully',
+            courses
+        })
+    }
+    catch(e) {
+        console.error(e);
     }
 })
 
@@ -118,14 +158,14 @@ api.route("/terms")
 })
 
 //Students
-api.route("/students/:major_id")
+api.route("/students/:major_id/:student_id?")
 .get(async (req, res, next) => {
     //const students = await Student.findAll();
     const id = req.params.major_id;
     const students = await connection.query(`
     SELECT CONCAT(u.first_name, ' ', u.last_name) as student_name, 
            m.major_name as major, 
-           s.student_id
+           s.student_id, s.id
     FROM users u 
     JOIN students s ON u.id = s.user_id
     JOIN majors m ON s.major = m.id
@@ -143,11 +183,13 @@ api.route("/students/:major_id")
 })
 .post(async (req, res, next) => {
     try {
-        const id = req.params.major_id;
         const user = new User({
             first_name: req.body.first_name,
             last_name: req.body.last_name
         });
+
+        console.log(req.body.first_name)
+        console.log(req.body.last_name)
 
         await user.save();
 
@@ -171,11 +213,29 @@ api.route("/students/:major_id")
         console.error(e);
         res.status(500).json({ error: 'Internal Server Error' });
     }
+})
+.delete(async (req, res) => {
+    try {
+        const id = req.params.student_id;
+        await Student.destroy(
+            {where: {
+                id: id
+            }});
+
+        const students = await Student.findAll();
+        res.status(200).json({
+            msg: 'Major deleted successfully',
+            students
+            });
+    }
+    catch(e) {
+        console.error(e);
+    }
 });
 
-api.route('/faculty')
+api.route('/faculty/:faculty_id?')
 .get(async (req, res, next) => {
-    const faculty = await connection.query(`SELECT CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', f.degree as 'professor_degree'
+    const faculty = await connection.query(`SELECT CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', f.degree as 'professor_degree', f.id
     FROM users u JOIN faculty f ON u.id = f.user_id
     GROUP BY professor_name, professor_degree;`, {
         type: QueryTypes.SELECT
@@ -207,6 +267,24 @@ api.route('/faculty')
         res.status(200).json({
             msg: 'Student saved successfully',
             faculties
+        })
+    }
+    catch(e) {
+        console.error(e)
+    }
+})
+.delete(async (req, res, next) => {
+    try {
+        const id = req.params.faculty_id
+        await Faculty.destroy({
+            where: {
+                id: id
+            }
+        })
+        const faculty = Faculty.findAll();
+        res.status(200).json({
+            msg: 'faculty deleted successfully',
+            faculty
         })
     }
     catch(e) {
