@@ -14,6 +14,8 @@ import AddStudent from "./views/AddStudent";
 import AddFaculty from "./views/AddFaculty";
 import Login from "./views/Login";
 import Signup from "./views/Signup";
+import EditMajor from "./views/EditMajor";
+import ShowStudents from "./views/ShowStudents";
 
 import App from "./App";
 
@@ -50,13 +52,21 @@ const router = createBrowserRouter([
   {
     path: "/faculty/add",
     element: <AddFaculty />
-  }, {
+  }, 
+  {
+    path: "/major/edit/:major_id",
+    element: <EditMajor />
+  },
+  {
     path: "/login",
     element: <Login />
   }, 
   {
     path: "/sign-up", 
     element: <Signup />
+  }, {
+    path: "/students", 
+    element: <ShowStudents />
   }
 ], { basename: "/" });
 

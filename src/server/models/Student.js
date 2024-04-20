@@ -30,7 +30,7 @@ Student.belongsTo(Major, {
 Student.belongsTo(User, {
     foreignKey: {
         field: 'user_id', 
-        allowNull: true 
+        allowNull: true,
     }
 });
 

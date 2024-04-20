@@ -12,7 +12,10 @@ const Course = connection.define('Course', {
     },
     prerequisite: {
         type: DataTypes.INTEGER,
-        allowNull: true
+        allowNull: true,
+        defaultValue: null,
+        onDelete: 'SET NULL',
+        onUpdate: 'CASCADE'
     },
     major: {
         type: DataTypes.BIGINT,
@@ -25,6 +28,11 @@ const Course = connection.define('Course', {
     
 }, {
     timestamps: false,
+})
+
+Course.hasOne(Course, {
+    foreignKey: 'prerequisite',
+    allowNull: true,
 })
 
 export default Course

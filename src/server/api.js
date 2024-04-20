@@ -17,11 +17,24 @@ const api = express.Router({mergeParams: true});
 //majors
 api.route("/majors/:id?")
 .get(async (req, res, next) => {
-    const majors = await Major.findAll();
-    res.status(201);
-    res.json({
-        majors
-    })
+    const id = req.params.id
+    console.log(`Major id: ${id}`);
+  
+    if(id) {
+        const majorID = await Major.findAll({
+            where: { id: id }
+        });
+        res.json({
+            majorID
+        })
+    } 
+    else {
+        const majors = await Major.findAll();
+        res.status(201);
+        res.json({
+            majors
+        })
+    }
 })
 .post(async (req, res, next) => {
     try{
@@ -32,6 +45,7 @@ api.route("/majors/:id?")
         });
 
         await major.save();
+
         const majors = await Major.findAll();
 
         res.status(201).json({
@@ -58,6 +72,30 @@ api.route("/majors/:id?")
         console.error(err);
     }
 })
+.put(async (req, res) => {
+    try {
+        const id = req.params.id; 
+        const { major_name, degree, credits } = req.body;
+
+        const major = await Major.findOne({
+            where: {
+                id: id
+            }
+        });
+
+        await major.update({
+            major_name: major_name,
+            degree: degree,
+            credits: credits
+        });
+
+        res.json({ message: 'Major updated successfully', major });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+
 
 //courses
 api.route("/courses/:major_id/:course_id?")
@@ -121,6 +159,21 @@ api.route("/courses/:major_id/:course_id?")
     catch(e) {
         console.error(e);
     }
+})
+
+api.route("/students")
+.get(async (req, res) => {
+    const students = await connection.query(`SELECT CONCAT(u.first_name, ' ', u.last_name) as 'student_name', m.major_name as 'major', s.student_id as 'student_id', m.id as 'major_id'
+    FROM users u JOIN students s ON u.id = s.user_id
+    JOIN majors m ON s.major = m.id
+    GROUP BY student_name, major
+    ORDER BY major;`, {
+        type: QueryTypes.SELECT
+    })
+    res.status(200);
+    res.json({
+        students
+    })
 })
 
 //Users

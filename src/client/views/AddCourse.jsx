@@ -45,7 +45,7 @@ function AddCourse() {
                 </section>
                 <section>
                     <label>Prerequisite:</label>
-                    <input type="number" {...register("prerequisite")} />
+                    <input type="number" {...register("prerequisite")} defaultValue={null}/>
                 </section>
                 <section>
                     <label>Course Name:</label>

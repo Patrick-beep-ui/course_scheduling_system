@@ -3,7 +3,7 @@ import axios from "axios";
 import {v4 as uuid} from "uuid";
 import "./App.css";
 import { Link } from "react-router-dom";
-import { Toaster, toast } from 'sonner'
+import { Toaster, toast } from 'sonner';
 
 function App() {
   const [majors, setMajors] = useState([]);
@@ -19,7 +19,7 @@ function App() {
     getMajors();
   }, [])
 
-  const deleteMajor = async (event, id) => {
+  const deleteMajor = async (event) => {
     const clickedElement = event.currentTarget;
     const major_id = clickedElement.getAttribute('value');
     console.log(major_id);
@@ -57,7 +57,7 @@ function App() {
           <td>{major.credits}</td>
           <td><Link to={`/courses/${major.id}`} className="btn btn-primary">Courses</Link></td>
           <td><Link to={`/students/${major.id}`} className="btn btn-secondary">Students</Link></td>
-          <td><i className='bx bx-pencil edit'></i></td>
+          <td><Link to={`/major/edit/${major.id}`}><i className='bx bx-pencil edit'></i></Link></td>
           <td name='major_id' value={major.id} onClick={(event) => deleteMajor(event, major.id)}><i className='bx bx-trash delete'></i></td>
          </tr>
           )}
