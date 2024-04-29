@@ -23,8 +23,7 @@ app.use(expressSession({
 
 app.use(express.urlencoded({extended: false}));
 app.use(express.json());
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(passport.authenticate('session'));
 
 app.use('/api', api);
 
@@ -99,14 +98,6 @@ app.post('/signup', async (req, res) => {
   }
 });
 
-//Check if user is authenticated
-const isAuthenticated = (req, res, next) => {
-  if (req.isAuthenticated()) {
-    return next(); 
-  } else {
-    return res.status(401).send('Unauthorized'); 
-  }
-};
 
 // app.get('/logout', (req, res) => {
 //     req.logout();
@@ -129,7 +120,6 @@ app.get('/protected', (req, res) => {
     res.status(401).send('Unauthorized');
   }
 });
-
 
 
 app.use((err, req, res, next) => {

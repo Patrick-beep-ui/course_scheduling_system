@@ -1,7 +1,7 @@
 import express from 'express';
 import {QueryTypes} from "sequelize";
 import connection from "./connection.js";
-
+import isAuth from './modules/auth.js';
 import Major from "./models/Major.js";
 import Course from "./models/Course.js";
 import User from "./models/User.js";
@@ -212,7 +212,7 @@ api.route("/terms")
 
 //Students
 api.route("/students/:major_id/:student_id?")
-.get(async (req, res, next) => {
+.get([isAuth],async (req, res, next) => {
     //const students = await Student.findAll();
     const id = req.params.major_id;
     const students = await connection.query(`
