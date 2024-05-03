@@ -65,7 +65,7 @@ function Course() {
           <td>{course.course_name}</td>
           <td>{course.credits}</td>
           <td>{course.prerequisite}</td>
-          <td><i className='bx bx-pencil edit'></i></td>
+          <td><Link to={`/course/edit/${major_id}/${course.id}`}><i className='bx bx-pencil edit'></i></Link></td>
           <td name='course_id' value={course.id} onClick={(event) => deleteCourse(event)}><i className='bx bx-trash delete'></i></td>
          </tr>
           )}

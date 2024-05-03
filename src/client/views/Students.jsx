@@ -61,7 +61,7 @@ function Student() {
                     <td>{student.student_id}</td>
                     <td>{student.student_name}</td>
                     <td>{student.major}</td>
-                    <td><i className='bx bx-pencil edit'></i></td>
+                    <td><Link to={`/student/edit/${major_id}/${student.id}`}><i className='bx bx-pencil edit'></i></Link></td>
                     <td name='major_id' value={student.id} onClick={(event) => deleteStudent(event)}><i className='bx bx-trash delete'></i></td>
                 </tr>    
                     )}

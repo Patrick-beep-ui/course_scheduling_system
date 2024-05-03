@@ -15,6 +15,8 @@ import AddFaculty from "./views/AddFaculty";
 import Login from "./views/Login";
 import Signup from "./views/Signup";
 import EditMajor from "./views/EditMajor";
+import EditCourse from "./views/EditCourse";
+import EditStudent from "./views/EditStudent";
 import ShowStudents from "./views/ShowStudents";
 
 import App from "./App";
@@ -31,7 +33,13 @@ const router = createBrowserRouter([
   {
     path: "/courses/:major_id",
     element: <Course />
-  }  
+  }, {
+    path: "/course/edit/:major_id/:course_id",
+    element: <EditCourse />
+  }, {
+    path: "/student/edit/:major_id/:student_id", 
+    element: <EditStudent />
+  }
    ,
    {
      path: "/courses/add/:major_id",

@@ -101,15 +101,30 @@ api.route("/majors/:id?")
 api.route("/courses/:major_id/:course_id?")
 .get(async (req, res) => {
     const id = req.params.major_id;
-    const courses = await Course.findAll({
-        where: {
-            major: id
-          }
-    });
-    res.status(201);
-    res.json({
-        courses
-    })
+    const course_id = req.params.course_id;
+
+    console.log(course_id);
+
+    if(course_id) {
+        const courseID = await Course.findAll({
+            where: { id: course_id }
+        });
+        res.json({
+            courseID
+        })
+    } 
+    else {
+        const courses = await Course.findAll({
+            where: {
+                major: id
+              }
+        });
+        res.status(201);
+        res.json({
+            courses
+        })
+    }
+
 })
 .post(async (req, res, next) => {
     try {
@@ -159,6 +174,33 @@ api.route("/courses/:major_id/:course_id?")
     catch(e) {
         console.error(e);
     }
+})
+.put(async (req, res) => {
+        try {
+            const major_id = req.params.major_id;
+            const course_id = req.params.course_id; 
+            const { code, credits, prerequisite, course_name } = req.body;
+    
+            const course = await Course.findOne({
+                where: {
+                    major: major_id,
+                    id: course_id
+                }
+            });
+    
+            await course.update({
+                code: code,
+                credits: credits,
+                prerequisite: prerequisite,
+                course_name: course_name,
+                major: major_id
+            });
+    
+            res.json({ message: 'Course updated successfully', course });
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: 'Internal server error' });
+        }
 })
 
 api.route("/students")
@@ -213,26 +255,47 @@ api.route("/terms")
 //Students
 api.route("/students/:major_id/:student_id?")
 .get([isAuth],async (req, res, next) => {
-    //const students = await Student.findAll();
+    const student_id = req.params.student_id
     const id = req.params.major_id;
-    const students = await connection.query(`
-    SELECT CONCAT(u.first_name, ' ', u.last_name) as student_name, 
-           m.major_name as major, 
-           s.student_id, s.id
-    FROM users u 
-    JOIN students s ON u.id = s.user_id
-    JOIN majors m ON s.major = m.id
-    WHERE m.id = ${id}
-    GROUP BY student_name, major
-    ORDER BY student_id;
-`, {
-    type: QueryTypes.SELECT
-});
 
-    res.status(200);
-    res.json({
-        students
-    })
+    if (student_id) {
+        const studentID = await connection.query(`
+        SELECT u.first_name as 'first_name',  u.last_name as last_name, 
+               m.major_name as major, 
+               s.student_id, s.id, u.id as 'user_id'
+        FROM users u 
+        JOIN students s ON u.id = s.user_id
+        JOIN majors m ON s.major = m.id
+        WHERE m.id = ${id} AND s.id = ${student_id}
+        GROUP BY first_name, last_name, major
+        ORDER BY student_id;
+    `, {
+        type: QueryTypes.SELECT
+    });
+        res.json({
+            studentID
+        })
+    }
+    else {
+        const students = await connection.query(`
+        SELECT CONCAT(u.first_name, ' ', u.last_name) as student_name, 
+               m.major_name as major, 
+               s.student_id, s.id
+        FROM users u 
+        JOIN students s ON u.id = s.user_id
+        JOIN majors m ON s.major = m.id
+        WHERE m.id = ${id}
+        GROUP BY student_name, major
+        ORDER BY student_id;
+    `, {
+        type: QueryTypes.SELECT
+    });
+    
+        res.status(200);
+        res.json({
+            students
+        })
+    }
 })
 .post(async (req, res, next) => {
     try {
@@ -283,6 +346,42 @@ api.route("/students/:major_id/:student_id?")
     }
     catch(e) {
         console.error(e);
+    }
+})
+.put(async (req, res) => {
+    try {
+        const major_id = req.params.major_id;
+        const s_id = req.params.student_id;
+        const {first_name, last_name, major, student_id, user_id} = req.body;
+    
+        const user = await User.findOne({
+            where: {
+                id: user_id
+            }
+        })
+    
+        await user.update({
+            first_name: first_name,
+            last_name: last_name,
+        });
+    
+        const student = await Student.findOne({
+            where: {
+                id: s_id
+            }
+        });
+
+        await student.update({
+            major: major_id,
+            user_id: user.id,
+            student_id: student_id
+        });
+
+        res.json({message: 'Student updated successfully', student})
+    } 
+    catch(e) {
+        console.error(e);
+        res.status(500).json({message: 'Student updated successfully'});
     }
 });
 
