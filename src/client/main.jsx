@@ -26,6 +26,7 @@ import EditStudent from "./views/EditStudent";
 import EditFaculty from "./views/EditFaculty";
 import EditTerm from "./views/EditTerm";
 import EditBuilding from "./views/EditBuilding"; 
+import EditRoom from "./views/EditRoom";
 import ShowStudents from "./views/ShowStudents";
 
 import App from "./App";
@@ -110,6 +111,10 @@ const router = createBrowserRouter([
   {
     path: "/rooms/add/:building_id",
     element: <AddRoom />
+  },
+  {
+    path: "/rooms/edit/:building_id/:room_id",
+    element: <EditRoom />
   },
   {
     path: "/login",

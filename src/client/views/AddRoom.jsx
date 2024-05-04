@@ -20,9 +20,9 @@ function AddRoom() {
             },
             body: JSON.stringify(formData)
         });
-        const { courses } = await request.json();
+        const { rooms } = await request.json();
         navigate(`/rooms/${building_id}`);
-        console.log(courses);
+        console.log(rooms);
     } catch (error) {
         console.error(error);
     }

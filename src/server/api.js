@@ -326,19 +326,41 @@ api.route("/buildings/:building_id?")
 })
 
 //Rooms
-api.route("/rooms/:building_id")
+api.route("/rooms/:building_id/:room_id?")
 .get(async (req, res, next) => {
-    const building_id = req.params.building_id;
-    const rooms = await Room.findAll({
-        where: {
-            id: building_id
+    try {
+        const building_id = req.params.building_id;
+        const room_id = req.params.room_id;
+        
+        if(room_id) {
+            const roomID = await Room.findAll({
+                where: {
+                    building_id: building_id,
+                    id: room_id
+                }
+            });
+        
+            res.status(200);
+            res.json({
+                roomID
+            })
         }
-    });
-
-    res.status(200);
-    res.json({
-        rooms
-    })
+        else {
+            const rooms = await Room.findAll({
+                where: {
+                    building_id: building_id
+                }
+            });
+        
+            res.status(200);
+            res.json({
+                rooms
+            })
+        }
+    }
+    catch(e) {
+        console.error(e);
+    }
 })
 .post(async (req, res, next) => {
     const building_id = req.params.building_id;
@@ -359,6 +381,55 @@ api.route("/rooms/:building_id")
         msg: 'Room saved successfully',
         rooms
     })
+})
+.delete(async (req, res) => {
+    try {
+        const room_id = req.params.room_id
+        const building_id = req.params.building_id;
+        
+
+        await Room.destroy({
+            where: {
+                id: room_id
+            }
+        })
+
+        const rooms = await Room.findAll({
+            where: {
+                building_id: building_id
+            }
+        })
+
+        res.status(201)
+        res.json({
+            msg: 'Building deleted successfully',
+            rooms
+        })
+    }
+    catch(e) {
+        console.error(e);
+    }
+})
+.put(async (req, res) => {
+    const room_id = req.params.room_id;
+    const building_id = req.params.building_id; 
+    const {room_name, capacity, components} = req.body;
+
+    const room = await Room.findOne({
+        where: {
+            id: room_id,
+            building_id: building_id
+        }
+    });
+
+    await room.update({
+        name: room_name,
+        capacity: capacity,
+        components: components,
+        building_id: building_id
+    });
+
+    res.json({message: 'Room updated Successfully', room})
 })
 
 //Periods

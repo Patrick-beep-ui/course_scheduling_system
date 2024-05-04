@@ -23,6 +23,19 @@ function Room() {
         getRooms();
     }, [])
 
+    const deleteRoom = async (roomId) => {
+        try {
+            const url = `/api/rooms/${building_id}/${roomId}`;
+            await axios.delete(url);
+    
+            // Remove the deleted room from the room state
+            setRoom(prevRooms => prevRooms.filter(r => r.id !== roomId));
+        } catch (error) {
+            console.error(error);
+        }
+    };
+    
+
     return(
         <>
     <h1>Rooms</h1>
@@ -48,7 +61,7 @@ function Room() {
           <td>{r.capacity}</td>
           <td>{r.components}</td>
           <td><Link to={`/rooms/edit/${building_id}/${r.id}`}><i className='bx bx-pencil edit'></i></Link></td>
-          <td name='room_id' value={r.id} onClick={(event) => deleteCourse(event)}><i className='bx bx-trash delete'></i></td>
+          <td name='room_id' value={r.id} onClick={() => deleteRoom(r.id)}><i className='bx bx-trash delete'></i></td>
          </tr>
           )}
         </tbody>
