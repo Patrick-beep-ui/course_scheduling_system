@@ -9,6 +9,7 @@ import Room from './models/Room.js';
 import Term from './models/Term.js';
 import Student from "./models/Student.js";
 import Faculty from './models/Faculty.js';
+import Building from './models/Building.js';
 
 const api = express.Router({mergeParams: true});
 
@@ -229,27 +230,236 @@ api.route("/users")
     })
 });
 
+//Buildings
+api.route("/buildings/:building_id?")
+.get(async (req, res, next) => {
+    try {
+        const building_id = req.params.building_id;
+
+        if(building_id) {
+            const buildingID = await Building.findOne({
+                where: {
+                    id: building_id
+                }
+            })
+
+            res.status(201)
+            res.json({
+                buildingID
+            })
+        }
+        else {
+            const buildings = await Building.findAll();
+
+            res.status(200);
+            res.json({
+                buildings
+            })
+        }
+    }
+    catch(e) {
+        console.error(e)
+    }
+})
+.post(async (req, res) => {
+    try {
+        const building = new Building({
+            building_name: req.body.building_name
+        })
+
+        await building.save();
+
+        const buildings = await Building.findAll();
+
+        res.status(201).json({
+            msg: 'Term saved successfully',
+            buildings
+        })
+
+    }
+    catch(e) {
+        console.error(e);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+.delete(async (req, res) => {
+    try {
+        const id = req.params.building_id;
+
+        const building = await Building.destroy({
+            where: {
+                id: id
+            }
+        })
+
+        res.status(201)
+        res.json({
+            msg: 'Building deleted successfully',
+            building
+        })
+    }
+    catch(e) {
+        console.error(e);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+.put(async (req, res) => {
+    try {
+        const id = req.params.building_id;
+
+        const building = await Building.findOne({
+            where: {
+                id: id
+            }
+        })
+
+        building.update({
+            building_name: req.body.building_name
+        })
+
+        res.json({ message: 'Course updated successfully', building });
+    }
+    catch(e) {
+        console.error(e);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
 
 //Rooms
-api.route("/rooms")
+api.route("/rooms/:building_id")
 .get(async (req, res, next) => {
-    const rooms = await Room.findAll();
+    const building_id = req.params.building_id;
+    const rooms = await Room.findAll({
+        where: {
+            id: building_id
+        }
+    });
 
     res.status(200);
     res.json({
         rooms
     })
 })
+.post(async (req, res, next) => {
+    const building_id = req.params.building_id;
+
+    const room = new Room({
+        name: req.body.room_name,
+        capacity: req.body.capacity,
+        components: req.body.components,
+        building_id: building_id
+    })
+
+    await room.save();
+
+    const rooms = await Room.findAll();
+
+    res.status(201);
+    res.json({
+        msg: 'Room saved successfully',
+        rooms
+    })
+})
 
 //Periods
-api.route("/terms")
+api.route("/terms/:term_id?")
 .get(async (req, res, next) => {
-    const terms = await Term.findAll();
 
-    res.status(200);
-    res.json({
-        terms
+    try {
+        const term_id = req.params.term_id
+
+        if(term_id) {
+            const termID = await Term.findOne({
+                where: {
+                    id: term_id
+                }
+            })
+
+            res.status(201);
+            res.json({
+                termID
+            })
+        }
+        else {
+            const terms = await Term.findAll();
+
+            res.status(200);
+            res.json({
+                terms
+            })
+        }
+    }
+    catch(e) {
+        console.error(e);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
+.post(async (req, res, next) => {
+    try {
+        const term = new Term({
+            term_name: req.body.name,
+            start_date: req.body.start_date,
+            end_date: req.body.end_date,
+            term_year: req.body.term_year
+        })
+
+        await term.save();
+
+        const terms = await Term.findAll();
+
+        res.status(201).json({
+            msg: 'Term saved successfully',
+            terms
+        })
+    }
+    catch(e) {
+        console.error(e)
+    }
+})
+.delete(async (req, res) => {
+    try {
+        const id = req.params.term_id;
+        await Term.destroy({where: {id}})
+
+        const terms = await Term.findAll();
+        res.status(201).json({
+            msg: 'Term deleted successfully',
+            terms
+        })
+    }
+    catch(e) {
+        console.error(e)
+    }
+})
+.put(async (req, res) => {
+    try {
+        const id = req.params.term_id;
+        const {name, term_year, start_date, end_date} = req.body;
+
+        const term = await Term.findOne({
+        where: {
+            id: id
+        }
+    });
+
+    await term.update({
+        term_name: name,
+        start_date: start_date,
+        end_date: end_date,
+        term_year: term_year
     })
+
+    res.status(201)
+    res.json({
+        message: 'Term updated successfully',
+        term
+    });
+
+    }
+    catch(e) {
+        console.error(e)
+        res.status(500).json({ message: 'Internal server error' });
+    }
 })
 
 //Students
@@ -381,22 +591,44 @@ api.route("/students/:major_id/:student_id?")
     } 
     catch(e) {
         console.error(e);
-        res.status(500).json({message: 'Student updated successfully'});
+        res.status(500).json({message: e});
     }
 });
 
 api.route('/faculty/:faculty_id?')
-.get(async (req, res, next) => {
-    const faculty = await connection.query(`SELECT CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', f.degree as 'professor_degree', f.id
-    FROM users u JOIN faculty f ON u.id = f.user_id
-    GROUP BY professor_name, professor_degree;`, {
-        type: QueryTypes.SELECT
-    });
+.get(async (req, res) => {
+    try {
+        const faculty_id = req.params.faculty_id;
 
-    res.status(200);
-    res.json({
-        faculty
-    })
+        if(faculty_id) {
+            const facultyID = await connection.query(`SELECT u.first_name as 'first_name', u.last_name as 'last_name', f.degree as 'professor_degree', f.id
+            FROM users u JOIN faculty f ON u.id = f.user_id
+            WHERE f.id = ${faculty_id}
+            GROUP BY first_name, last_name, professor_degree;`, {
+                type: QueryTypes.SELECT
+            });
+        
+            res.status(200);
+            res.json({
+                facultyID
+            })
+        }
+        else {
+            const faculty = await connection.query(`SELECT CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', f.degree as 'professor_degree', f.id
+            FROM users u JOIN faculty f ON u.id = f.user_id
+            GROUP BY professor_name, professor_degree;`, {
+                type: QueryTypes.SELECT
+            });
+        
+            res.status(200);
+            res.json({
+                faculty
+            })
+        }
+    }
+    catch(e) {
+        console.error(e);
+    }
 })
 .post(async (req, res, next) => {
     try {
@@ -438,6 +670,39 @@ api.route('/faculty/:faculty_id?')
             msg: 'faculty deleted successfully',
             faculty
         })
+    }
+    catch(e) {
+        console.error(e)
+    }
+})
+.put(async (req, res) => {
+    try {
+        const faculty_id = req.params.faculty_id;
+        const {first_name, last_name, degree, user_id} = req.body;
+
+        const user = await User.findOne({
+            where: {
+                id: user_id
+            }
+        })
+
+        await user.update({
+            first_name: first_name,
+            last_name: last_name
+        })
+
+        const faculty = await Faculty.findOne({
+            where: {
+                id: faculty_id
+            }
+        })
+
+        await faculty.update({
+            degree: degree,
+            user_id: user.id
+        })
+
+        res.json({message: 'Faculty updated successfully', faculty})
     }
     catch(e) {
         console.error(e)

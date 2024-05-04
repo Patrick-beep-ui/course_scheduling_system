@@ -69,7 +69,10 @@ function App() {
       </button>
     */ }
 
-    <Link to={'/major/add'} className="btn btn-primary">Add Major</Link>
+    <Link to={'/major/add'} className="btn btn-primary home_links">Add Major</Link>
+    <Link to={'/faculty'} className="btn btn-primary home_links">See Professors</Link>
+    <Link to={'/terms'} className="btn btn-primary home_links">See Terms</Link>
+    <Link to={'/buildings'} className="btn btn-primary home_links">See Buildings</Link>
     </section>
     </>
 

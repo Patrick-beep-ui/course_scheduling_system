@@ -1,8 +1,9 @@
 import {useForm} from "react-hook-form";
-import {useParams} from "react-router-dom";
+import {useParams, useNavigate} from "react-router-dom";
 
 function AddFaculty() {
     const {register, handleSubmit, formState: {errors}} = useForm({mode: "onChange"});
+    const navigate = useNavigate();
 
     const processData = async (formData) => {
         try {
@@ -16,6 +17,7 @@ function AddFaculty() {
 
             const {faculty} = await request.json();
             console.log(faculty);
+            navigate('/')
         }
     catch(err) {
         console.error(err);

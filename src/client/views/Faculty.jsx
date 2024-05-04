@@ -60,7 +60,7 @@ function Faculty() {
                     <td>{faculty.id}</td>
                     <td>{faculty.professor_name}</td>
                     <td>{faculty.professor_degree}</td>
-                    <td><i className='bx bx-pencil edit'></i></td>
+                    <td><Link to={`/faculty/edit/${faculty.id}`}><i className='bx bx-pencil edit'></i></Link></td>
                     <td name='course_id' value={faculty.id} onClick={(event) => deleteFaculty(event)}><i className='bx bx-trash delete'></i></td>
                 </tr>    
                 )}

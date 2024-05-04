@@ -21,6 +21,14 @@ const User = connection.define('User', {
     password: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    session_token: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    role: {
+        type: DataTypes.ENUM('admin', 'registar'),
+        allowNull: true
     }
 }, {
     timestamps: false,

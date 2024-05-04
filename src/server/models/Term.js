@@ -2,8 +2,8 @@ import {DataTypes} from "sequelize"
 import connection from "../connection.js"
 
 const Term = connection.define('Term', {
-    name: {
-        type: DataTypes.STRING,
+    term_name: {
+        type: DataTypes.ENUM('Spring', 'Fall', 'Summer'),
         allowNull: true
     },
     start_date: {
@@ -13,6 +13,9 @@ const Term = connection.define('Term', {
     end_date: {
         type: DataTypes.DATE,
         allowNull: false
+    }, 
+    term_year: {
+        type: DataTypes.STRING
     }
 }, {
     timestamps: false
