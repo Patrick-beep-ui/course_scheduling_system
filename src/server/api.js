@@ -1,7 +1,8 @@
 import express from 'express';
-import {QueryTypes} from "sequelize";
+import {QueryTypes, Op} from "sequelize";
 import connection from "./connection.js";
 import isAuth from './modules/auth.js';
+
 import Major from "./models/Major.js";
 import Course from "./models/Course.js";
 import User from "./models/User.js";
@@ -10,6 +11,7 @@ import Term from './models/Term.js';
 import Student from "./models/Student.js";
 import Faculty from './models/Faculty.js';
 import Building from './models/Building.js';
+
 
 const api = express.Router({mergeParams: true});
 
@@ -222,13 +224,52 @@ api.route("/students")
 //Users
 api.route("/users")
 .get(async (req, res, next) => {
-    const users = await User.findAll();
+    const users = await User.findAll({
+        where: {
+            email: { [Op.not]: null }
+        }
+    });
 
     res.status(201);
     res.json({
         users
     })
 });
+
+//Admins
+api.route("/admins")
+.get(async (req, res, next) =>{
+    const admins = await User.findAll({
+        where: {
+            role: "admin"
+        }
+    });
+
+    res.status(201);
+    res.json({
+        admins
+    })
+})
+
+// Update user role to admin
+api.route("/users/:userId/make-admin")
+.put(async (req, res, next) => {
+    const { userId } = req.params;
+    try {
+        const user = await User.findByPk(userId);
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        // Update user role to admin
+        user.role = "admin";
+        await user.save();
+        res.status(200).json({ message: "User role updated to admin" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 
 //Buildings
 api.route("/buildings/:building_id?")
@@ -777,6 +818,29 @@ api.route('/faculty/:faculty_id?')
     }
     catch(e) {
         console.error(e)
+    }
+})
+
+api.route('/faculty/courses/:faculty_id')
+.get(async (req, res) => {
+    try {
+        const faculty_id = req.params.faculty_id
+
+        const courses = await connection.query(`SELECT c.id as 'course_id', c.course_name as 'course_name', c.credits as 'course_credits', c.code as 'course_code'
+        FROM courses c JOIN faculty_courses fc ON c.id = fc.course_id
+        JOIN faculty f ON f.id = fc.faculty_id
+        WHERE f.id = ${faculty_id}
+        GROUP BY course_id, course_name, course_credits, course_code`, {
+            type: QueryTypes.SELECT
+        });
+
+        res.status(201)
+        res.json({
+            courses
+        })
+    }
+    catch(e) {
+
     }
 })
 

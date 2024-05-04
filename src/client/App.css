@@ -37,6 +37,15 @@ h1 {
   background-color: rgb(27, 92, 27);
 }
 
+/* Home */
+
+.admin-links {
+  padding: 10px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
 /* Login */
 .login-body {
   display: flex;

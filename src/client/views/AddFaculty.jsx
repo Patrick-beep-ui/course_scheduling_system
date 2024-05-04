@@ -17,7 +17,7 @@ function AddFaculty() {
 
             const {faculty} = await request.json();
             console.log(faculty);
-            navigate('/')
+            navigate('/faculty')
         }
     catch(err) {
         console.error(err);

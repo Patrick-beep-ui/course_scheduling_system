@@ -11,6 +11,8 @@ import Faculty from "./views/Faculty";
 import Term from "./views/Term";
 import Building from "./views/Building";
 import Room from "./views/Room";
+import Admin from "./views/Admin";
+import FacultyCourses from "./views/FacultyCourses";
 import AddCourse from "./views/AddCourse";
 import AddMajor from "./views/AddMajor";
 import AddStudent from "./views/AddStudent";
@@ -18,6 +20,7 @@ import AddFaculty from "./views/AddFaculty";
 import AddTerm from "./views/AddTerm";
 import AddBuilding from "./views/AddBuilding";
 import AddRoom from "./views/AddRoom";
+import AddAdmin from "./views/AddAdmin";
 import Login from "./views/Login";
 import Signup from "./views/Signup";
 import EditMajor from "./views/EditMajor";
@@ -89,6 +92,10 @@ const router = createBrowserRouter([
     element: <EditFaculty />
   },
   {
+    path: "/faculty/courses/:faculty_id",
+    element: <FacultyCourses />
+  },
+  {
     path: "/major/edit/:major_id",
     element: <EditMajor />
   },
@@ -126,6 +133,12 @@ const router = createBrowserRouter([
   }, {
     path: "/students", 
     element: <ShowStudents />
+  }, {
+    path: "/admins",
+    element: <Admin />
+  }, {
+    path: "/admins/add",
+    element: <AddAdmin />
   }
 ], { basename: "/" });
 

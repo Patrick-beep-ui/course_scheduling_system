@@ -52,6 +52,7 @@ function Faculty() {
                     <th scope="col">Degree</th>
                     <th></th>
                     <th></th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -60,6 +61,7 @@ function Faculty() {
                     <td>{faculty.id}</td>
                     <td>{faculty.professor_name}</td>
                     <td>{faculty.professor_degree}</td>
+                    <td><Link to={`/faculty/courses/${faculty.id}`} className="btn btn-primary">Courses</Link></td>
                     <td><Link to={`/faculty/edit/${faculty.id}`}><i className='bx bx-pencil edit'></i></Link></td>
                     <td name='course_id' value={faculty.id} onClick={(event) => deleteFaculty(event)}><i className='bx bx-trash delete'></i></td>
                 </tr>    
