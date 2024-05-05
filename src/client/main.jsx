@@ -13,6 +13,7 @@ import Building from "./views/Building";
 import Room from "./views/Room";
 import Admin from "./views/Admin";
 import FacultyCourses from "./views/FacultyCourses";
+import AssignFacultyCourse from "./views/AssignFacultyCourse";
 import AddCourse from "./views/AddCourse";
 import AddMajor from "./views/AddMajor";
 import AddStudent from "./views/AddStudent";
@@ -94,6 +95,10 @@ const router = createBrowserRouter([
   {
     path: "/faculty/courses/:faculty_id",
     element: <FacultyCourses />
+  },
+  {
+    path: "/faculty/assign/:faculty_id",
+    element: <AssignFacultyCourse />
   },
   {
     path: "/major/edit/:major_id",

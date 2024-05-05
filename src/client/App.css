@@ -187,3 +187,31 @@ a:visited {
   border: 1px solid #000;
 }
 
+/*Assign Classes*/
+
+.major-btns  {
+  margin: 10px;
+}
+
+.courses {
+  overflow: scroll;
+  padding: 5px;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.highlighted {
+  background-color: rgb(146, 146, 136); 
+}
+
+.courses input[type="checkbox"] {
+  appearance: none;
+  -webkit-appearance: none; /* For older versions of webkit browsers */
+  -moz-appearance: none; /* For Firefox */
+  /* Add custom styling here */
+}
+
+.courses_form {
+  display: flex;
+  justify-content: center;
+}

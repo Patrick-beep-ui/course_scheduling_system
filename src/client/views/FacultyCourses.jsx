@@ -11,7 +11,7 @@ function FacultyCourse() {
     useEffect(() => {
         const getCourses = async () => {
             try {
-                const request = await axios.get(`/faculty/courses/${faculty_id}`)
+                const request = await axios.get(`/api/faculty/course/${faculty_id}`)
                 const {data} = request
                 console.log(data.courses);
                 setCourse(data.courses)
@@ -23,6 +23,23 @@ function FacultyCourse() {
 
         getCourses();
     }, [faculty_id]);
+
+    const deleteCourse = async (event) => {
+        try {
+            const fCourse = event.currentTarget 
+            const fCourse_id = fCourse.getAttribute('value')
+            console.log(fCourse_id);
+    
+            const url = `/api/faculty/course/${faculty_id}/${fCourse_id}`
+            axios.delete(url)
+    
+            const request = await axios(`/api/faculty/course/${faculty_id}`)
+            setCourse(request.data.courses);
+        }
+        catch (e) {
+            console.error(e);
+        }
+       }
 
     return(
         <>
@@ -37,6 +54,7 @@ function FacultyCourse() {
                     <th scope="col">Course Code</th>
                     <th scope="col">Course Name</th>
                     <th scope="col">Course Credits</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -46,11 +64,12 @@ function FacultyCourse() {
                     <td>{c.course_code}</td>
                     <td>{c.course_name}</td>
                     <td>{c.course_credits}</td>
+                    <td name='course_id' value={c.id} onClick={(event) => deleteCourse(event)}><i className='bx bx-trash delete'></i></td>
                 </tr>    
                     )}
             </tbody>
         </table>
-        <Link to={`/admins/add`} className="btn btn-primary">Add Admins</Link>
+        <Link to={`/faculty/assign/${faculty_id}`} className="btn btn-primary">Assign Course</Link>
     </section>
         </>
     )

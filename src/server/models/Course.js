@@ -30,9 +30,11 @@ const Course = connection.define('Course', {
     timestamps: false,
 })
 
-Course.hasOne(Course, {
-    foreignKey: 'prerequisite',
-    allowNull: true,
-})
+Course.belongsTo(Course, {
+  foreignKey: 'prerequisite',
+  allowNull: true,
+  onDelete: 'SET NULL', // Optional if you want to set the foreign key to NULL on deletion
+  onUpdate: 'CASCADE' // Optional if you want to cascade updates to the foreign key
+});
 
 export default Course

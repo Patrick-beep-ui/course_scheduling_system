@@ -11,6 +11,8 @@ import Term from './models/Term.js';
 import Student from "./models/Student.js";
 import Faculty from './models/Faculty.js';
 import Building from './models/Building.js';
+import FacultyCourse from './models/FacultyCourse.js';
+import FacultyAvailability from './models/FacultyAvailability.js';
 
 
 const api = express.Router({mergeParams: true});
@@ -758,15 +760,27 @@ api.route('/faculty/:faculty_id?')
 
         await faculty.save();
 
+        const schedules = req.body.schedules;
+
+        for (const schedule of schedules) {
+            const facultyAvailability = new FacultyAvailability({
+                days: schedule.days,
+                start_time: schedule.start_time,
+                end_time: schedule.end_time,
+                faculty_id: faculty.id
+            });
+            await facultyAvailability.save();
+        }
+
         const faculties = await Faculty.findAll();
         
         res.status(200).json({
-            msg: 'Student saved successfully',
+            msg: 'Faculty saved successfully',
             faculties
-        })
-    }
-    catch(e) {
-        console.error(e)
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Server error' });
     }
 })
 .delete(async (req, res, next) => {
@@ -790,43 +804,94 @@ api.route('/faculty/:faculty_id?')
 .put(async (req, res) => {
     try {
         const faculty_id = req.params.faculty_id;
-        const {first_name, last_name, degree, user_id} = req.body;
+        const { first_name, last_name, degree, schedules } = req.body;
 
+        // Update faculty data
         const user = await User.findOne({
             where: {
-                id: user_id
+                id: req.body.user_id
             }
-        })
+        });
 
         await user.update({
             first_name: first_name,
             last_name: last_name
-        })
+        });
 
         const faculty = await Faculty.findOne({
             where: {
                 id: faculty_id
             }
-        })
+        });
 
         await faculty.update({
             degree: degree,
             user_id: user.id
+        });
+
+        // Update or create schedules
+        for (const schedule of schedules) {
+            if (schedule.id) {
+                // Update existing schedule
+                const existingSchedule = await FacultyAvailability.findOne({
+                    where: {
+                        id: schedule.id
+                    }
+                });
+
+                await existingSchedule.update({
+                    days: schedule.days,
+                    start_time: schedule.start_time,
+                    end_time: schedule.end_time
+                });
+            } else {
+                // Create new schedule
+                await FacultyAvailability.create({
+                    days: schedule.days,
+                    start_time: schedule.start_time,
+                    end_time: schedule.end_time,
+                    faculty_id: faculty_id
+                });
+            }
+        }
+
+        res.json({ message: 'Faculty updated successfully', faculty });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Server error' });
+    }
+})
+
+
+api.route('/faculty/availability/:faculty_id')
+.get(async (req, res) => {
+    try {
+        const faculty_id = req.params.faculty_id
+
+        const availability = await connection.query(`SELECT f.id as 'faculty_id', fa.days as 'days', fa.start_time as 'start_time', fa.end_time as 'end_time'
+        FROM faculty f JOIN faculty_availability fa ON f.id = fa.faculty_id
+        WHERE f.id = ${faculty_id}
+        GROUP BY faculty_id, days, start_time, end_time`, {
+            type: QueryTypes.SELECT
         })
 
-        res.json({message: 'Faculty updated successfully', faculty})
+        res.status(201)
+        res.json({
+            availability
+        })
+
     }
     catch(e) {
         console.error(e)
     }
 })
 
-api.route('/faculty/courses/:faculty_id')
+api.route('/faculty/course/:faculty_id/:fCourse_id?')
 .get(async (req, res) => {
     try {
         const faculty_id = req.params.faculty_id
 
-        const courses = await connection.query(`SELECT c.id as 'course_id', c.course_name as 'course_name', c.credits as 'course_credits', c.code as 'course_code'
+        const courses = await connection.query(`SELECT fc.id,  c.id as 'course_id', c.course_name as 'course_name', c.credits as 'course_credits', c.code as 'course_code'
         FROM courses c JOIN faculty_courses fc ON c.id = fc.course_id
         JOIN faculty f ON f.id = fc.faculty_id
         WHERE f.id = ${faculty_id}
@@ -841,6 +906,61 @@ api.route('/faculty/courses/:faculty_id')
     }
     catch(e) {
 
+    }
+})
+.post(async (req, res) => {
+    try {
+        const faculty_id = req.params.faculty_id
+        const courseIDs = req.body['class-option'];
+
+        for(const courseID of courseIDs) {
+            const facultyCourse = new FacultyCourse({
+                course_id: courseID,
+                faculty_id: faculty_id
+            });
+    
+            await facultyCourse.save();
+        }
+
+        const facultyCourses = await FacultyCourse.findAll({
+            where: {
+                faculty_id: faculty_id
+            }
+        });
+    
+            res.status(201)
+            res.json({
+                facultyCourses
+            })
+    }
+    catch (e) {
+        console.error(e)
+    }
+})
+.delete(async (req, res) => {
+    try {
+        const faculty_course_id = req.params.fCourse_id;
+        const faculty_id = req.params.faculty_id
+    
+        await FacultyCourse.destroy({
+            where: {
+                id: faculty_course_id
+            }
+        })
+    
+        const facultyCourses = await FacultyCourse.findAll({
+            where: {
+                faculty_id: faculty_id
+            }
+        });
+    
+            res.status(201)
+            res.json({
+                facultyCourses
+            })
+    }
+    catch(e) {
+        console.error(e)
     }
 })
 
