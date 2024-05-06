@@ -5,7 +5,7 @@ import { Link } from "react-router-dom";
 import { Toaster, toast } from 'sonner';
 
 export default function ShowScheduleComponent(props) {
-    const {term_id, student_id} = props;
+    const {term_id, student_id, student_name, student_ku_id, credits} = props;
     const [schedule, setSchedule] = useState([]);
 
     useEffect(() => {
@@ -24,13 +24,32 @@ export default function ShowScheduleComponent(props) {
         getSchedule()
     }, [student_id])
 
+    const deleteCourse = async (event) => {
+        try {
+            const student = event.currentTarget 
+            const sc_student_id = student.getAttribute('value')
+            console.log(student_id);
+    
+            const url = `/api/student/schedule/${term_id}/${student_id}/${sc_student_id}`
+            axios.delete(url)
+    
+            const request = await axios(`/api/student/schedule/${term_id}/${student_id}`)
+            setCourses(request.data.schedule);
+        }
+        catch (e) {
+            console.error(e);
+        }
+       }
+
     return(
         <>
-        <h1>Student Schedule</h1>
         
-             <section>
+             <section className="schedules-table">
+                <h4>{student_name}</h4>
+                <span>{student_ku_id}</span>
                 <table className="table">
                     <thead>
+                    <span className="total-credits"><strong>{credits} Credits</strong></span>
                         <tr>
                             <th scope="col">Days</th>
                             <th scope="col">Time</th>
@@ -53,6 +72,7 @@ export default function ShowScheduleComponent(props) {
                                 <td>{course.professor_name}</td>
                                 <td>{course.course_credits}</td>
                                 <td>{course.start_date} - {course.end_date}</td>
+                                <td name='course_id' value={course.student_schedule_id} onClick={(event) => deleteCourse(event)}><i className='bx bx-trash delete'></i></td>
                             </tr>
                         ))}
                     </tbody>
@@ -60,9 +80,7 @@ export default function ShowScheduleComponent(props) {
             </section>
 
 
-        <section>
-            <Link to={`/registar/create/schedule/${term_id}/${student_id}`} className="btn btn-primary">Create Schedule</Link>
-        </section>
+        
         </>
     )
 }

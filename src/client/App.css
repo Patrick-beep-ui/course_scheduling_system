@@ -238,6 +238,10 @@ a:visited {
   margin: 10px;
 }
 
+.course-card .red {
+  color: red;
+}
+
 .course-card:hover {
   transform: translateY(-4px);
 }
@@ -260,4 +264,13 @@ a:visited {
 
 .details p strong {
   color: #333;
+}
+
+.schedules-table {
+  margin-bottom: 10px;
+  padding: 20px;
+}
+
+.total-credits strong {
+  width: 80px;
 }

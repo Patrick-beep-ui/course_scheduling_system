@@ -1090,8 +1090,9 @@ api.route("/roster/:term_id?/:roster_id?")
 .get(async (req, res) => {
     try {
         const {term_id} = req.params
-        const courses = await connection.query(`SELECT tc.id as 'term_course_id', c.code as 'course_code', c.credits as 'course_credits', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', t.id as 'term_id'
+        const courses = await connection.query(`SELECT tc.id as 'term_course_id', c.code as 'course_code', c.credits as 'course_credits', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', t.id as 'term_id', count(sc.id) as 'qtyOfStudents'
         FROM term_courses tc JOIN faculty_courses fc ON tc.course_id = fc.id
+        JOIN student_schedules sc ON sc.period_course_id = tc.id
         JOIN terms t ON t.id = tc.term_id
         JOIN courses c ON c.id = fc.course_id
         JOIN faculty f ON f.id = fc.faculty_id
@@ -1186,7 +1187,7 @@ api.route("/rosters/classes/:term_id")
     }
 })
 
-api.route("/student/schedule/:term_id?/:student_id?")
+api.route("/student/schedule/:term_id?/:student_id?/:sc_student_id?")
 .get(async (req, res) => {
     try {
         const term_id = req.params.term_id;
@@ -1264,6 +1265,26 @@ api.route("/student/schedule/:term_id?/:student_id?")
         console.error(e);
         res.status(500).send("Internal Server Error");
     }
+})
+.delete(async (req, res) => {
+    const term_id = req.params.term_id;
+    const student_id = req.params.student_id;
+    const sc_student_id = req.params.sc_student_id;
+
+    await StudentSchedule.destroy({
+        where: {
+            id: sc_student_id
+        }
+    })
+
+    const schedules = await StudentSchedule.findAll({where: {
+        period_course_id: term_id,
+        student_id: student_id
+    }})
+
+    res.status(200).json({
+        schedules
+    })
 })
 
 api.route("/show/schedules")
