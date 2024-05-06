@@ -215,3 +215,49 @@ a:visited {
   display: flex;
   justify-content: center;
 }
+
+/*Registar Home Page*/
+
+.section-card {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  padding: 10px;
+  height: auto;
+}
+
+.course-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+  width: 200px;
+  height: 250px;
+  margin: 10px;
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+}
+
+.course-card h3 {
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  color: #333;
+  border-bottom: 1px solid #696666;
+}
+
+.details {
+  margin-top: 16px;
+}
+
+.details p {
+  margin-bottom: 4px;
+  color: #666;
+}
+
+.details p strong {
+  color: #333;
+}

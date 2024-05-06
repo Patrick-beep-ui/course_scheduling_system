@@ -31,7 +31,7 @@ function Registar() {
             <h1>Registar Dashboard</h1>
             <hr/>
             <section className="mt-4">
-                <select onChange={handleTermChange}>
+                <select defaultValue={6} onChange={handleTermChange}>
                     {terms.map(term => 
                         <option value={term.id} key={term.id}>{term.term_name} {term.term_year}</option>
                     )}

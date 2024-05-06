@@ -54,6 +54,7 @@ function RStudent() {
                         <th scope="col">Name</th>
                         <th scope="col">Major</th>
                         <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -62,6 +63,7 @@ function RStudent() {
                         <td>{s.student_id}</td>
                         <td>{s.student_name}</td>
                         <td>{s.major}</td>
+                        <td><Link to={`/registar/students/schedule/${term_id}/${s.s_id}`} className="btn btn-primary">Schedule</Link></td>
                         <td><button className="btn btn-danger" value={s.t_id} onClick={unenrollStudent} >Unenroll</button></td>
                     </tr>
                         )}

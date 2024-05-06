@@ -37,8 +37,10 @@ import ShowStudents from "./views/ShowStudents";
 import Registar from "./Registar";
 import RStudent from "./registar_views/Student";
 import CourseRoster from "./registar_views/CourseRoster";
-
 import ShowStudent from "./registar_views/ShowStudent";
+import StudentSchedule from "./registar_views/StudentSchedule";
+import CreateSchedule from "./registar_views/CreateSchedule";
+import ShowSchedules from "./registar_views/ShowSchedules";
 
 import App from "./App";
 
@@ -165,6 +167,15 @@ const router = createBrowserRouter([
   }, {
     path: "/registar/roster/:term_id",
     element: <CourseRoster />
+  }, {
+    path: "/registar/students/schedule/:term_id/:student_id",
+    element: <StudentSchedule />
+  }, {
+    path: "/registar/create/schedule/:term_id/:student_id",
+    element: <CreateSchedule />
+  }, {
+    path: "/registar/schedules/show/:term_id",
+    element: <ShowSchedules />
   }
 ], { basename: "/" });
 

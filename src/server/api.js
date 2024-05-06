@@ -18,6 +18,7 @@ import FacultyAvailability from './models/FacultyAvailability.js';
 import CourseCompletion from './models/CourseCompletion.js'
 import TermEnrollment from './models/TermEnrollment.js'
 import TermCourse from "./models/TermCourse.js"
+import StudentSchedule from "./models/StudentSchedule.js"
 
 
 const api = express.Router({mergeParams: true});
@@ -1002,7 +1003,7 @@ api.route("/student/:term_id?/:student_id?")
     const {term_id} = req.params
     try {
         if(term_id) {
-            const studentTerm = await connection.query(`SELECT tm.id as 't_id', CONCAT(u.first_name, ' ', u.last_name) as 'student_name', m.major_name as 'major', s.student_id as 'student_id', t.term_name as 'term_name'
+            const studentTerm = await connection.query(`SELECT tm.id as 't_id', CONCAT(u.first_name, ' ', u.last_name) as 'student_name', m.major_name as 'major', s.student_id as 'student_id', t.term_name as 'term_name', s.id as 's_id'
             FROM students s JOIN term_enrollment tm ON s.id = tm.student_id
             JOIN users u ON s.user_id = u.id
             JOIN majors m ON s.major = m.id
@@ -1085,9 +1086,29 @@ api.route("/student/:term_id?/:student_id?")
     }
 });
 
-api.route("/roster/:roster_id?")
+api.route("/roster/:term_id?/:roster_id?")
 .get(async (req, res) => {
+    try {
+        const {term_id} = req.params
+        const courses = await connection.query(`SELECT tc.id as 'term_course_id', c.code as 'course_code', c.credits as 'course_credits', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', t.id as 'term_id'
+        FROM term_courses tc JOIN faculty_courses fc ON tc.course_id = fc.id
+        JOIN terms t ON t.id = tc.term_id
+        JOIN courses c ON c.id = fc.course_id
+        JOIN faculty f ON f.id = fc.faculty_id
+        JOIN users u ON u.id = f.user_id
+        WHERE t.id = ${term_id}
+        GROUP BY term_course_id, course_code, course_credits, course_name, professor_name, term_id`, {
+            type: QueryTypes.SELECT
+        })
 
+        res.status(201)
+        res.json({
+            courses
+        })
+    }
+    catch(e) {
+
+    }
 })
 .post(async (req, res) => {
     try {
@@ -1135,6 +1156,132 @@ api.route("/roster/:roster_id?")
 })
 .delete(async (req, res) => {
 
+})
+
+api.route("/rosters/classes/:term_id")
+.get(async (req, res) => {
+    try {
+        const term_id = req.params.term_id;
+        
+        const classes = await connection.query(`SELECT tc.id as 'term_course_id', tc.days as 'course_days', tc.start_time as 'start_time', tc.end_time as 'end_time', b.building_name as 'building', r.name as 'room_name', c.code as 'course_code', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', c.credits as 'course_credits', tc.start_date as 'start_date', tc.end_date as 'end_date'
+        FROM term_courses tc JOIN faculty_courses fc ON tc.course_id = fc.id
+        JOIN rooms r ON tc.room_id = r.id
+        JOIN buildings b ON b.id = r.building_id
+        JOIN terms t ON t.id = tc.term_id
+        JOIN courses c ON c.id = fc.course_id
+        JOIN faculty f ON f.id = fc.faculty_id
+        JOIN users u ON u.id = f.user_id
+        WHERE t.id = ${term_id}
+        GROUP BY term_course_id, course_code, course_credits, course_name, professor_name, term_id`, {
+            type: QueryTypes.SELECT
+        });
+
+        res.status(201);
+        res.json({
+            classes
+        })
+    }
+    catch(e) {
+        console.error(e)
+    }
+})
+
+api.route("/student/schedule/:term_id?/:student_id?")
+.get(async (req, res) => {
+    try {
+        const term_id = req.params.term_id;
+        const student_id = req.params.student_id;
+
+        if(student_id) {
+        const schedule = await connection.query(`SELECT sc.id as 'student_schedule_id', tc.days as 'course_days', tc.start_time as 'start_time', tc.end_time as 'end_time', b.building_name as 'building', r.name as 'room_name', c.code as 'course_code', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', c.credits as 'course_credits', tc.start_date as 'start_date', tc.end_date as 'end_date'
+        FROM term_courses tc JOIN faculty_courses fc ON tc.course_id = fc.id
+        JOIN student_schedules sc ON sc.period_course_id = tc.id
+        JOIN students s ON sc.student_id = s.id
+        JOIN rooms r ON tc.room_id = r.id
+        JOIN buildings b ON b.id = r.building_id
+        JOIN terms t ON t.id = tc.term_id
+        JOIN courses c ON c.id = fc.course_id
+        JOIN faculty f ON f.id = fc.faculty_id
+        JOIN users u ON u.id = f.user_id
+        WHERE t.id = ${term_id} AND s.id = ${student_id}
+        GROUP BY student_schedule_id, course_code, course_credits, course_name, professor_name, term_id
+        ORDER BY start_time, end_time`, {
+            type: QueryTypes.SELECT
+        });
+
+        res.status(201);
+        res.json({
+            schedule
+        })
+        }
+        else {
+            const schedule = await connection.query(`SELECT s.id as 'student_id', sc.id as 'student_schedule_id', tc.days as 'course_days', tc.start_time as 'start_time', tc.end_time as 'end_time', b.building_name as 'building', r.name as 'room_name', c.code as 'course_code', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', c.credits as 'course_credits', tc.start_date as 'start_date', tc.end_date as 'end_date'
+            FROM term_courses tc JOIN faculty_courses fc ON tc.course_id = fc.id
+            JOIN student_schedules sc ON sc.period_course_id = tc.id
+            JOIN students s ON sc.student_id = s.id
+            JOIN rooms r ON tc.room_id = r.id
+            JOIN buildings b ON b.id = r.building_id
+            JOIN terms t ON t.id = tc.term_id
+            JOIN courses c ON c.id = fc.course_id
+            JOIN faculty f ON f.id = fc.faculty_id
+            JOIN users u ON u.id = f.user_id
+            WHERE t.id = ${term_id}
+            GROUP BY student_id, course_code, course_credits, course_name, professor_name, term_id
+            ORDER BY student_id, start_time, end_time`, {
+                type: QueryTypes.SELECT
+            });
+
+            res.status(201);
+            res.json({
+            schedule
+        })
+        }
+    }
+    catch(e) {
+        console.error(e)
+    }
+})
+.post(async (req, res) => {
+    try {
+        const { student_id } = req.params;
+        console.log("Student_id:",student_id)
+        const courses = req.body;
+        
+        for (const course of courses) {
+            const schedule = new StudentSchedule({
+                student_id: student_id,
+                period_course_id: course.term_course_id
+            });
+            await schedule.save();
+        }
+
+        const schedules = await StudentSchedule.findAll({});
+        
+        res.status(200).json({
+            schedules
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(500).send("Internal Server Error");
+    }
+})
+
+api.route("/show/schedules")
+.get(async (req, res) => {
+    const schedules = await connection.query(`SELECT DISTINCT sc.student_id as 's_id', s.student_id as 'student_id', CONCAT(u.first_name, ' ', u.last_name) as 'student_name', sum(c.credits) as 'total_credits'
+    FROM student_schedules sc JOIN students s ON s.id = sc.student_id
+    JOIN users u ON u.id = s.user_id
+    JOIN term_courses tc ON tc.id = sc.period_course_id
+    JOIN faculty_courses fc ON fc.id = tc.course_id
+    JOIN courses c ON c.id = fc.course_id
+    GROUP BY s_id, student_id, student_name`, {
+        type: QueryTypes.SELECT
+    })
+
+    res.status(201)
+    res.json({
+        schedules
+    })
 })
 
 
