@@ -3,12 +3,10 @@ import connection from "../connection.js"
 
 const User = connection.define('User', {
     first_name: {
-        type: DataTypes.STRING,
-        allowNull: false
+        type: DataTypes.STRING
     },
     last_name: {
-        type: DataTypes.STRING,
-        allowNull: false
+        type: DataTypes.STRING
     },
     username: {
         type: DataTypes.STRING,

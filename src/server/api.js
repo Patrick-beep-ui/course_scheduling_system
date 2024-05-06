@@ -14,6 +14,11 @@ import Building from './models/Building.js';
 import FacultyCourse from './models/FacultyCourse.js';
 import FacultyAvailability from './models/FacultyAvailability.js';
 
+//Registar
+import CourseCompletion from './models/CourseCompletion.js'
+import TermEnrollment from './models/TermEnrollment.js'
+import TermCourse from "./models/TermCourse.js"
+
 
 const api = express.Router({mergeParams: true});
 
@@ -206,22 +211,7 @@ api.route("/courses/:major_id/:course_id?")
             console.error(err);
             res.status(500).json({ message: 'Internal server error' });
         }
-})
-
-api.route("/students")
-.get(async (req, res) => {
-    const students = await connection.query(`SELECT CONCAT(u.first_name, ' ', u.last_name) as 'student_name', m.major_name as 'major', s.student_id as 'student_id', m.id as 'major_id'
-    FROM users u JOIN students s ON u.id = s.user_id
-    JOIN majors m ON s.major = m.id
-    GROUP BY student_name, major
-    ORDER BY major;`, {
-        type: QueryTypes.SELECT
-    })
-    res.status(200);
-    res.json({
-        students
-    })
-})
+});
 
 //Users
 api.route("/users")
@@ -715,7 +705,7 @@ api.route('/faculty/:faculty_id?')
         const faculty_id = req.params.faculty_id;
 
         if(faculty_id) {
-            const facultyID = await connection.query(`SELECT u.first_name as 'first_name', u.last_name as 'last_name', f.degree as 'professor_degree', f.id
+            const facultyID = await connection.query(`SELECT u.first_name as 'first_name', u.last_name as 'last_name', f.degree as 'professor_degree', f.id, u.id as 'user_id'
             FROM users u JOIN faculty f ON u.id = f.user_id
             WHERE f.id = ${faculty_id}
             GROUP BY first_name, last_name, professor_degree;`, {
@@ -804,9 +794,8 @@ api.route('/faculty/:faculty_id?')
 .put(async (req, res) => {
     try {
         const faculty_id = req.params.faculty_id;
-        const { first_name, last_name, degree, schedules } = req.body;
+        const { first_name, last_name, degree} = req.body;
 
-        // Update faculty data
         const user = await User.findOne({
             where: {
                 id: req.body.user_id
@@ -829,8 +818,11 @@ api.route('/faculty/:faculty_id?')
             user_id: user.id
         });
 
-        // Update or create schedules
+        const schedules = req.body.schedules;
+
+        // Update existing schedules or create new ones
         for (const schedule of schedules) {
+            console.log(schedule.id);
             if (schedule.id) {
                 // Update existing schedule
                 const existingSchedule = await FacultyAvailability.findOne({
@@ -860,15 +852,14 @@ api.route('/faculty/:faculty_id?')
         console.error(e);
         res.status(500).json({ error: 'Server error' });
     }
-})
-
+});
 
 api.route('/faculty/availability/:faculty_id')
 .get(async (req, res) => {
     try {
         const faculty_id = req.params.faculty_id
 
-        const availability = await connection.query(`SELECT f.id as 'faculty_id', fa.days as 'days', fa.start_time as 'start_time', fa.end_time as 'end_time'
+        const availability = await connection.query(`SELECT f.id as 'faculty_id', fa.days as 'days', fa.start_time as 'start_time', fa.end_time as 'end_time', fa.id
         FROM faculty f JOIN faculty_availability fa ON f.id = fa.faculty_id
         WHERE f.id = ${faculty_id}
         GROUP BY faculty_id, days, start_time, end_time`, {
@@ -963,5 +954,188 @@ api.route('/faculty/course/:faculty_id/:fCourse_id?')
         console.error(e)
     }
 })
+
+api.route("/professor/courses")
+.get(async (req, res) => {
+    try {
+        const facultyCourses = await connection.query(`SELECT fc.id as 'fc_id', c.code as 'course_code', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'faculty_name'
+        FROM users u JOIN faculty f ON u.id = f.user_id
+        JOIN faculty_courses fc ON fc.faculty_id = f.id
+        JOIN courses c ON c.id = fc.course_id
+        GROUP BY fc_id, course_code, course_name, faculty_name `, {
+            type: QueryTypes.SELECT
+        })
+    
+        res.status(201)
+        res.json({
+            facultyCourses
+        })
+    }
+    catch(e) {
+        console.error(e)
+    }
+})
+
+api.route("/room")
+.get(async (req, res) => {
+    try {
+        const rooms = await connection.query(`SELECT r.id as 'room_id', r.name as 'room_name', r.capacity as 'room_capacity', r.components as 'room_components', b.building_name as 'building'
+        FROM rooms r JOIN buildings b ON r.building_id = b.id
+        GROUP BY room_id, room_name, room_capacity, room_components, building`, {
+            type: QueryTypes.SELECT
+        });
+
+        res.status(201)
+        res.json({
+            rooms
+        })
+    }
+    catch(e) {
+        console.error(e)
+    }
+})
+
+//Registar
+
+api.route("/student/:term_id?/:student_id?")
+.get(async (req, res) => {
+    const {term_id} = req.params
+    try {
+        if(term_id) {
+            const studentTerm = await connection.query(`SELECT tm.id as 't_id', CONCAT(u.first_name, ' ', u.last_name) as 'student_name', m.major_name as 'major', s.student_id as 'student_id', t.term_name as 'term_name'
+            FROM students s JOIN term_enrollment tm ON s.id = tm.student_id
+            JOIN users u ON s.user_id = u.id
+            JOIN majors m ON s.major = m.id
+            JOIN terms t ON t.id = tm.term_id
+            WHERE t.id = ${term_id}
+            GROUP BY t_id, student_name, major, student_id, term_name`, {
+                type: QueryTypes.SELECT
+            })
+
+            res.status(201);
+            res.json({
+                studentTerm
+            })
+        }
+        else {
+            const students = await connection.query(`SELECT s.id as 's_id', CONCAT(u.first_name, ' ', u.last_name) as 'student_name', m.major_name as 'major', s.student_id as 'student_id', m.id as 'major_id'
+            FROM users u JOIN students s ON u.id = s.user_id
+            JOIN majors m ON s.major = m.id
+            GROUP BY student_name, major
+            ORDER BY major;`, {
+                type: QueryTypes.SELECT
+            })
+            res.status(200);
+            res.json({
+                students
+            })
+        }
+    }
+    catch(e) {
+        console.error(e)
+    }
+})
+.post(async (req, res) => {
+    try {
+        const { term_id, student_id } = req.params;
+
+        const enrollment = new TermEnrollment({
+            term_id: term_id,
+            student_id: student_id
+        });
+
+        await enrollment.save();
+
+        const term_enrollment = await TermEnrollment.findAll({
+            where: {
+                term_id: term_id
+            }
+        });
+
+        res.status(200).json({
+            term_enrollment
+        });
+    } catch(e) {
+        console.error(e);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
+})
+.delete(async (req, res) => {
+    try {
+        const {term_id, student_id} = req.params;
+
+        await TermEnrollment.destroy({
+            where: {
+                id: student_id
+            }
+        })
+
+        const term_enrollment = await TermEnrollment.findAll({
+            where: {
+                term_id: term_id
+            }
+        });
+
+        res.status(200).json({
+            term_enrollment
+        });
+    }
+    catch(e) {
+        console.error(e);
+    }
+});
+
+api.route("/roster/:roster_id?")
+.get(async (req, res) => {
+
+})
+.post(async (req, res) => {
+    try {
+        const {course_id, term, room_id, start_date, end_date, days, start_time, end_time} = req.body;
+
+        console.log("Course:", course_id)
+        console.log("Term:", term)
+        console.log("Room:", room_id)
+        console.log("Start Date:", start_date)
+        console.log("End Date:", end_date)
+        console.log("Days:", days)
+        console.log("Start Time:", start_time)
+        console.log("End Time:", end_time)
+
+        const roster = new TermCourse({
+            term_id: term,
+            course_id: course_id,
+            room_id: room_id,
+            start_date: start_date,
+            end_date: end_date,
+            days: days,
+            start_time: start_time,
+            end_time: end_time
+        })
+
+        await roster.save();
+
+        const term_courses = await TermCourse.findAll({
+            where: {
+                term_id: term
+            }
+        })
+
+        res.status(201) 
+        res.json({
+            term_courses 
+        })
+    }
+    catch(e) {
+
+    }
+})
+.put(async (req, res) => {
+
+})
+.delete(async (req, res) => {
+
+})
+
 
 export default api

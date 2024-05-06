@@ -33,6 +33,13 @@ import EditBuilding from "./views/EditBuilding";
 import EditRoom from "./views/EditRoom";
 import ShowStudents from "./views/ShowStudents";
 
+//Registars
+import Registar from "./Registar";
+import RStudent from "./registar_views/Student";
+import CourseRoster from "./registar_views/CourseRoster";
+
+import ShowStudent from "./registar_views/ShowStudent";
+
 import App from "./App";
 
 const router = createBrowserRouter([
@@ -144,6 +151,20 @@ const router = createBrowserRouter([
   }, {
     path: "/admins/add",
     element: <AddAdmin />
+  },
+    //Registars  
+  {
+    path:"/registar",
+    element: <Registar />
+  }, {
+    path: "/registar/students/:term_id",
+    element: <RStudent />
+  }, {
+    path: "/registar/students/enroll/:term_id",
+    element: <ShowStudent />
+  }, {
+    path: "/registar/roster/:term_id",
+    element: <CourseRoster />
   }
 ], { basename: "/" });
 

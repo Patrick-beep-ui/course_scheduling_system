@@ -5,16 +5,13 @@ import connection from "../connection.js"
 
 const Student = connection.define('Student', {
     major: {
-        type: DataTypes.BIGINT,
-        allowNull: false
+        type: DataTypes.BIGINT
     },
     user_id: {
-        type: DataTypes.BIGINT,
-        allowNull: false
+        type: DataTypes.BIGINT
     },
     student_id: {
-        type: DataTypes.BIGINT,
-        allowNull: false
+        type: DataTypes.BIGINT
     }
 }, {
     timestamps: false
