@@ -31,7 +31,7 @@ export default function TermComponent(props) {
                 {courses.map(course =>
                     <div className={`course-card`} key={course.term_course_id}>
                         <h3>{course.course_code}</h3>
-                        <p>{course.course_name}</p>
+                        <p><Link to={`/registar/roster/edit/${term_id}/${course.term_course_id}`}>{course.course_name}</Link></p>
                         <div className="details">
                             <p><strong>Credits:</strong> {course.course_credits}</p>
                             <p><strong>Professor:</strong> {course.professor_name}</p>

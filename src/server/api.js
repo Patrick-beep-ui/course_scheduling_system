@@ -1089,8 +1089,27 @@ api.route("/student/:term_id?/:student_id?")
 api.route("/roster/:term_id?/:roster_id?")
 .get(async (req, res) => {
     try {
-        const {term_id} = req.params
-        const courses = await connection.query(`SELECT tc.id as 'term_course_id', c.code as 'course_code', c.credits as 'course_credits', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', t.id as 'term_id', count(sc.id) as 'qtyOfStudents'
+        const {term_id, roster_id} = req.params
+        if(roster_id) {
+            const courses = await connection.query(`SELECT tc.id as 'term_course_id', c.code as 'course_code', c.credits as 'course_credits', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', t.id as 'term_id', count(sc.id) as 'qtyOfStudents'
+        FROM term_courses tc JOIN faculty_courses fc ON tc.course_id = fc.id
+        JOIN student_schedules sc ON sc.period_course_id = tc.id
+        JOIN terms t ON t.id = tc.term_id
+        JOIN courses c ON c.id = fc.course_id
+        JOIN faculty f ON f.id = fc.faculty_id
+        JOIN users u ON u.id = f.user_id
+        WHERE t.id = ${term_id} AND tc.id = ${roster_id}
+        GROUP BY term_course_id, course_code, course_credits, course_name, professor_name, term_id`, {
+            type: QueryTypes.SELECT
+        })
+
+        res.status(201)
+        res.json({
+            courses
+        })
+        }
+        else {
+            const courses = await connection.query(`SELECT tc.id as 'term_course_id', c.code as 'course_code', c.credits as 'course_credits', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', t.id as 'term_id', count(sc.id) as 'qtyOfStudents'
         FROM term_courses tc JOIN faculty_courses fc ON tc.course_id = fc.id
         JOIN student_schedules sc ON sc.period_course_id = tc.id
         JOIN terms t ON t.id = tc.term_id
@@ -1106,6 +1125,7 @@ api.route("/roster/:term_id?/:roster_id?")
         res.json({
             courses
         })
+        }
     }
     catch(e) {
 
@@ -1153,8 +1173,47 @@ api.route("/roster/:term_id?/:roster_id?")
     }
 })
 .put(async (req, res) => {
+    try {
+        const { term_id, roster_id } = req.params;
+        const { course_id, term, room_id, start_date, end_date, days, start_time, end_time } = req.body;
 
+        // Check if the roster entry exists
+        const existingRoster = await TermCourse.findByPk(roster_id);
+        if (!existingRoster) {
+            return res.status(404).json({ error: 'Roster entry not found' });
+        }
+
+        // Update the roster entry with the new data
+        existingRoster.term_id = term;
+        existingRoster.course_id = course_id;
+        existingRoster.room_id = room_id;
+        existingRoster.start_date = start_date;
+        existingRoster.end_date = end_date;
+        existingRoster.days = days;
+        existingRoster.start_time = start_time;
+        existingRoster.end_time = end_time;
+
+        // Save the updated roster entry
+        await existingRoster.save();
+
+        // Fetch updated term courses
+        const termCourses = await TermCourse.findAll({
+            where: {
+                term_id: term
+            }
+        });
+
+        // Send success response
+        res.status(200).json({
+            message: 'Roster entry updated successfully',
+            term_courses: termCourses
+        });
+    } catch (error) {
+        console.error('Error updating roster entry:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+    }
 })
+
 .delete(async (req, res) => {
 
 })
