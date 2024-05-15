@@ -12,7 +12,11 @@ function Registar() {
         const getTerms = async () => {
             try {
                 const response = await axios.get("/api/terms");
-                setTerms(response.data.terms);
+                const fetchedTerms = response.data.terms;
+                setTerms(fetchedTerms);
+                if (fetchedTerms.length > 0) {
+                    setSelectedTermId(fetchedTerms[0].id);
+                }
             } catch (error) {
                 console.error("Error fetching terms:", error);
                 toast.error('Failed to fetch terms');
@@ -26,12 +30,12 @@ function Registar() {
         setSelectedTermId(event.target.value);
     };
 
-    return(
+    return (
         <>
             <h1>Registar Dashboard</h1>
             <hr/>
             <section className="mt-4">
-                <select defaultValue={6} onChange={handleTermChange}>
+                <select value={selectedTermId} onChange={handleTermChange}>
                     {terms.map(term => 
                         <option value={term.id} key={term.id}>{term.term_name} {term.term_year}</option>
                     )}
@@ -42,7 +46,7 @@ function Registar() {
                 {selectedTermId && <TermComponent term_id={selectedTermId} />}
             </section>
         </>
-    )
+    );
 }
 
 export default Registar;

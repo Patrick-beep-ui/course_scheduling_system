@@ -1111,7 +1111,7 @@ api.route("/roster/:term_id?/:roster_id?")
         else {
             const courses = await connection.query(`SELECT tc.id as 'term_course_id', c.code as 'course_code', c.credits as 'course_credits', c.course_name as 'course_name', CONCAT(u.first_name, ' ', u.last_name) as 'professor_name', t.id as 'term_id', count(sc.id) as 'qtyOfStudents'
         FROM term_courses tc JOIN faculty_courses fc ON tc.course_id = fc.id
-        JOIN student_schedules sc ON sc.period_course_id = tc.id
+        LEFT JOIN student_schedules sc ON sc.period_course_id = tc.id
         JOIN terms t ON t.id = tc.term_id
         JOIN courses c ON c.id = fc.course_id
         JOIN faculty f ON f.id = fc.faculty_id

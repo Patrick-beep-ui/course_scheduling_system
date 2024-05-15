@@ -220,10 +220,11 @@ a:visited {
 
 .section-card {
   display: flex;
-  justify-content: space-between;
-  flex-wrap: nowrap;
+  justify-content: center;
   padding: 10px;
-  height: auto;
+  min-height: 250px;
+  max-height: auto;
+  flex-wrap: wrap;
 }
 
 .course-card {

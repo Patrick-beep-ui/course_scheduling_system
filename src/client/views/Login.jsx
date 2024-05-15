@@ -93,7 +93,6 @@ export default function Login() {
                     </>
                 )}
             </form>
-            <button onClick={logoutUser}>Log Out</button>
         </div>
     );
 }
